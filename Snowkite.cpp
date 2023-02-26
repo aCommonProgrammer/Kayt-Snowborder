@@ -8,19 +8,21 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <math.h>
 
 #define CARATTERE_SEPARATORE '-'
 #define PARTECIPANTI 40
+#define GRANDEZZA_PODIO 3
 #define MINUTI_GARA 30
 
 using namespace std;
 
-//------------------------------------------STRUCT-KITESNOWBOARDER---------------------------------------------
+//------------------------------------------STRUCT-SNOWKITERIDER---------------------------------------------
 /*!
-    \struct KiteSnowboarder
+    \struct SnowkiteRider
     \brief contiene il nome e i punti rilevati di un atleta
 */
-struct KiteSnowboarder
+struct SnowkiteRider
 {
 /*! \var nome
     \brief nome dell'atleta*/
@@ -33,6 +35,10 @@ struct KiteSnowboarder
 /*! \var misurazione
     \brief contiene i punti rilevati durante il percorso dell'atleta*/
     int misurazione[MINUTI_GARA][2] = {{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1}};
+
+/*! \var distanza
+    \brief contiene la distanza percorsa dall'atleta*/
+    int distanza = 0;
 };
 //-------------------------------------------------------------------------------------------------------------
 
@@ -65,127 +71,126 @@ class GeneraDistanze
 
     /*!
         \fn creaRegistroGara
-        \brief genera i dati degli atleti e li passa uno ad uno alla funzione writeKiteSnowboarder()
+        \brief genera i dati degli atleti e li passa uno ad uno alla funzione writeSnowkiteRider()
     */
-        void creaRegistroGara()
+    void creaRegistroGara()
+    {
+        ofstream f(file_name);
+        f.close();
+        int n = rand()%PARTECIPANTI;
+        for (int c=0; c<n; c++)
         {
-            ofstream f(file_name);
-            f.close();
-            int n = rand()%PARTECIPANTI;
-            for (int c=0; c<n; c++)
-            {
-                int m=rand()%MINUTI_GARA;
-                writeKiteSnowboarder(generaGiro(generaNome(), m), m);
-            }
+            int m=rand()%MINUTI_GARA;
+            writeSnowkiteRider(generaGiro(generaNome(), m), m);
         }
+    }
 
     /*!
-        \fn writeKiteSnowboarder
+        \fn writeSnowkiteRider
         \param[in] athlete atleta da inserire nel registro
         \param[in] minuti tempo della prestazione in minuti
         \brief scrive nel file del registro l'ateta passato come parametro
         \note Il file viene scritto nel formato "nome cognome-minuti-x0-y0-x1-y1-x2-y2...-"
     */
-        void writeKiteSnowboarder(KiteSnowboarder athlete, int minuti)
-        {
-            fstream fout(file_name, ios::app);
-            fout<<athlete.nome<<CARATTERE_SEPARATORE<<athlete.minuti<<CARATTERE_SEPARATORE;
-                for (int t=0; t<minuti; t++)
-                {
-                    fout<<athlete.misurazione[t][0]<<CARATTERE_SEPARATORE<<athlete.misurazione[t][1]<<CARATTERE_SEPARATORE;
-                    if (t == minuti-1)
-                        fout<<'\n';
-                }
-            fout.close();
-        }
+    void writeSnowkiteRider(SnowkiteRider athlete, int minuti)
+    {
+        fstream fout(file_name, ios::app);
+        fout<<athlete.nome<<CARATTERE_SEPARATORE<<athlete.minuti<<CARATTERE_SEPARATORE;
+            for (int t=0; t<minuti; t++)
+            {
+                fout<<athlete.misurazione[t][0]<<CARATTERE_SEPARATORE<<athlete.misurazione[t][1]<<CARATTERE_SEPARATORE;
+                if (t == minuti-1)
+                    fout<<'\n';
+            }
+        fout.close();
+    }
 
     private:
-    /*! \var file_name
-        \brief nome del file dove è contenuto il registro gara*/
-        string file_name = "RegistroGara.txt";
+/*! \var file_name
+    \brief nome del file dove è contenuto il registro gara*/
+    string file_name = "RegistroGara.txt";
 
-    /*!
-        \fn generaGiro
-        \param[in] nome nome dell'atleta
-        \param[in] n_minuti tempo effettuato dall'atleta
-        \brief genera la prestazione di un atleta
-        \return atleta con prestazione genrata
-    */
-        KiteSnowboarder generaGiro(string nome, int n_minuti)
+/*!
+    \fn generaGiro
+    \param[in] nome nome dell'atleta
+    \param[in] n_minuti tempo effettuato dall'atleta
+    \brief genera la prestazione di un atleta
+    \return atleta con prestazione genrata
+*/
+    SnowkiteRider generaGiro(string nome, int n_minuti)
+    {
+        if(n_minuti > MINUTI_GARA)
+            n_minuti = MINUTI_GARA;
+
+        SnowkiteRider atleta;
+        atleta.nome = nome;
+        atleta.minuti = n_minuti;
+        for(int m=0; m<n_minuti; m++)
         {
-            if(n_minuti > MINUTI_GARA)
-                n_minuti = MINUTI_GARA;
-
-            KiteSnowboarder atleta;
-            atleta.nome = nome;
-            atleta.minuti = n_minuti;
-            for(int m=0; m<n_minuti; m++)
-            {
-                atleta.misurazione[m][0] = rand()%101;
-                atleta.misurazione[m][1] = rand()%101;
-            }
-            return atleta;
+            atleta.misurazione[m][0] = rand()%101;
+            atleta.misurazione[m][1] = rand()%101;
         }
+        return atleta;
+    }
 
-        /*!
-        \fn generaNome
-        \brief genera un nome e un cognome
-        \return nome e cognome
-        */
-        string generaNome()
+/*!
+    \fn generaNome
+    \brief genera un nome e un cognome
+    \return nome e cognome
+*/
+    string generaNome()
+    {
+        ifstream fin_nome("Nomi.txt");
+        ifstream fin_cognome("Cognomi.txt");
+        string nome, cognome;
+        for (int c=0, r=rand()%9224; c<r; c++)
         {
-            ifstream fin_nome("Nomi.txt");
-            ifstream fin_cognome("Cognomi.txt");
-            string nome, cognome;
-            for (int c=0, r=rand()%9224; c<r; c++)
-            {
-                getline(fin_nome, nome);
-            }
-            for (int c=0, r=rand()%872; c<r; c++)
-            {
-                getline(fin_cognome, cognome);
-            }
-            fin_nome.close(); fin_cognome.close();
-            return nome+" "+cognome;
+            getline(fin_nome, nome);
         }
+        for (int c=0, r=rand()%872; c<r; c++)
+        {
+            getline(fin_cognome, cognome);
+        }
+        fin_nome.close(); fin_cognome.close();
+        return nome+" "+cognome;
+    }
 };
 //-------------------------------------------------------------------------------------------------------------
 
 //--------------------------------------CLASSE-CALCOLA-PODIO---------------------------------------------------
 /*!
     \class CalcolaPodio
-    \brief calcola il podio dei primi 3 atleti
+    \brief calcola il podio degli atleti vincitori
 */
 class CalcolaPodio
 {
     public:
-    /*!
-        \fn getFileName
-        \brief restituisce il nome del file di registro
-    */
+/*!
+    \fn getFileName
+    \brief restituisce il nome del file di registro
+*/
     string getFileName()
     {
         return file_name;
     }
 
-    /*!
-        \fn setFileName
-        \param[in] name nome del file
-        \brief imposta il nome del file di registro
-    */
+/*!
+    \fn setFileName
+    \param[in] name nome del file
+    \brief imposta il nome del file di registro
+*/
     void setFileName(string name)
     {
         file_name = name;
     }
 
-    /*!
-        \fn leggiRegistro
-        \brief legge il file di registro e lo trascrive in un vettore
-        \return vettore contenente i dati del file
-    */
-    KiteSnowboarder* leggiRegistro()
+/*!
+    \fn leggiRegistro
+    \param[in] vettore vettore che viene riempito con i dati nel file di registro
+    \brief legge il file di registro e lo trascrive in un vettore
+*/
+    void leggiRegistro(SnowkiteRider vettore[])
     {
-        KiteSnowboarder vettore[PARTECIPANTI];
         ifstream fin(file_name);
         string app_interi;
         int contatore = 0;
@@ -204,17 +209,38 @@ class CalcolaPodio
             contatore++;
         }
         fin.close();
-        return vettore;
     }
 
-    /*!
-        \fn podio
-        \brief calcola il podio dei vincitori
-        \return vettore contenente il podio
-    */
-    KiteSnowboarder* podio()
+/*!
+    \fn podio
+    \param[in] atleti vettore contenente il registro gara
+    \param[in] vettore vettore che verra riempito con il podio
+    \brief calcola il podio dei vincitori
+*/
+    void podio(SnowkiteRider atleti[], SnowkiteRider vettore[])
     {
+        calcolaDistanze(atleti);
+        int posizione_vincitori[GRANDEZZA_PODIO] = {0,0,0};
+        for (int c=0; c<GRANDEZZA_PODIO; c++)
+        {
+            for (int i=1; i<PARTECIPANTI; i++)
+                if (atleti[posizione_vincitori[c]].distanza > atleti[i].distanza)
+                    posizione_vincitori[c] = i;
+            vettore[c] = atleti[posizione_vincitori[c]];
+            atleti[posizione_vincitori[c]].distanza = c * -1;
+        }
+    }
 
+/*!
+    \fn calcolaDistanza
+    \param[in] atleti vettore contenente il registro gara
+    \brief calcola le distanze percorse dagli atleti
+*/
+    void calcolaDistanze(SnowkiteRider atleti[])
+    {
+        for (int c=0; c<PARTECIPANTI; c++)
+            for (int m=0; m<atleti[c].minuti-1; m++)
+                atleti[c].distanza += (int) sqrt(pow(atleti[c].misurazione[m][0]-atleti[c].misurazione[m+1][0],2)+pow(atleti[c].misurazione[m][1]-atleti[c].misurazione[m+1][1],2));
     }
 
  private:
@@ -229,12 +255,20 @@ class CalcolaPodio
 //---------------------------------------------MAIN------------------------------------------------------------
 int main()
 {
+    //Impostazione della randomizzazione
     srand(time(NULL));
+
+    //Generazione del registro di gara
     GeneraDistanze Generatore;
     Generatore.creaRegistroGara();
-    CalcolaPodio Calcolatore;
-    KiteSnowboarder* partecipanti = Calcolatore.leggiRegistro();
 
+    //Dichiarazione dei vettori della lista partecipanti e atleti sul podio
+    SnowkiteRider atleta[PARTECIPANTI], podio[GRANDEZZA_PODIO];
+
+    //Lettura del registro e calcolo del podio
+    CalcolaPodio Calcolatore;
+    Calcolatore.leggiRegistro(atleta);
+    Calcolatore.podio(atleta, podio);
 
     return 0;
 }
