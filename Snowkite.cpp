@@ -9,6 +9,7 @@
 #include <fstream>
 #include <time.h>
 #include <math.h>
+#include <ctime>
 
 #define CARATTERE_SEPARATORE '-'
 #define PARTECIPANTI 40
@@ -252,15 +253,55 @@ class CalcolaPodio
 };
 //-------------------------------------------------------------------------------------------------------------
 
+//-------------------------------------------FUNZIONI----------------------------------------------------------
+/*!
+    \fn timeout
+    \param[in] delay tempo da aspettare
+    \brief ferma il programma per il tempo indicato
+*/
+void timeout(double delay)
+{
+    delay *= CLOCKS_PER_SEC;
+    clock_t now = clock();
+    while(clock() - now <delay);
+}
+//-------------------------------------------------------------------------------------------------------------
+
 //---------------------------------------------MAIN------------------------------------------------------------
 int main()
 {
     //Impostazione della randomizzazione
     srand(time(NULL));
 
-    //Generazione del registro di gara
-    GeneraDistanze Generatore;
-    Generatore.creaRegistroGara();
+    cout<<"    _____                         _     _  _         "<<endl
+        <<"   / ____|                       | |   (_)| |        "<<endl
+        <<"  | (___   _ __    ___ __      __| | __ _ | |_  ___  "<<endl
+        <<"   \\___ \\ | '_ \\  / _ \\\\ \\ /\\ / /| |/ /| || __|/ _ \\ "<<endl
+        <<"   ____) || | | || (_) |\\ V  V / |   < | || |_|  __/ "<<endl
+        <<"  |_____/ |_| |_| \\___/  \\_/\\_/  |_|\\_\\|_| \\__|\\___| "<<endl;
+
+    timeout(3);
+    system("cls");
+
+    string risposta;
+    cout<<"Generare una nuova partita? "; cin>>risposta;
+
+    if (risposta == "si" || risposta == "SI" || risposta == "Si" || risposta == "sI")
+    {
+        //Generazione del registro di gara
+        GeneraDistanze Generatore;
+        Generatore.creaRegistroGara();
+        cout<<"Partita generata correttemente";
+        timeout(3);
+    }
+    system("cls");
+
+    cout<<"Caricamento podio";
+    for (int c=0; c<5; c++)
+    {
+        timeout((double) (rand()%4+3)/10);
+        cout<<".";
+    }
 
     //Dichiarazione dei vettori della lista partecipanti e atleti sul podio
     SnowkiteRider atleta[PARTECIPANTI], podio[GRANDEZZA_PODIO];
@@ -269,6 +310,13 @@ int main()
     CalcolaPodio Calcolatore;
     Calcolatore.leggiRegistro(atleta);
     Calcolatore.podio(atleta, podio);
+
+    cout<<"\n\t\tPODIO\n";
+    for (int c=0; c<GRANDEZZA_PODIO; c++)
+    {
+        cout<<"\a\n\t"<<c+1<<(char) -8<<"\t"<<podio[c].nome<<"    ("<<podio[c].distanza<<"m)";
+        timeout(1);
+    }
 
     return 0;
 }
