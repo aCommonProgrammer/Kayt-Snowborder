@@ -8,15 +8,70 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include <math.h>
+#include <cmath>
 #include <ctime>
 
+/*! \var CARATTERE_SEPARATORE
+    \brief carattere per separare i dati nel file*/
 #define CARATTERE_SEPARATORE '-'
-#define PARTECIPANTI 40
-#define GRANDEZZA_PODIO 3
+
+/*! \var PARTECIPANTI
+    \brief numero partecipanti nella gara*/
+int PARTECIPANTI = 15;
+
+/*! \var PARTECIPANTI
+    \brief numero partecipanti nella gara*/
+int GRANDEZZA_PODIO = 3;
+
+/*! \var MINUTI_GARA
+    \brief tempo massimo in minuti per una corsa dell'atleta*/
 #define MINUTI_GARA 30
 
 using namespace std;
+
+//-------------------------------------------FUNZIONI----------------------------------------------------------
+/*!
+    \param[in] delay tempo da aspettare
+    \brief ferma il programma per il tempo indicato
+*/
+void timeout(double delay)
+{
+    delay *= CLOCKS_PER_SEC;
+    clock_t now = clock();
+    while(clock() - now <delay);
+}
+
+/*!
+    \brief modifica i parametri di generazione del registro di gara
+*/
+void modificaGenerazione()
+{
+    int scelta;
+        do{
+            system("cls");
+            cout<<"\nSelezionare le impostazioni di modifica:\n"
+                  "1)Numero partecipanti\n"
+                  "2)Grandezza podio\n"
+                  "3)Salva le impostazioni correnti\n"
+                  ">>"; cin>>scelta;
+            switch (scelta)
+            {
+            case 1: system("cls");
+                    cout<<"Inserire il numero dei partecipanti: "; cin>>PARTECIPANTI;
+                    break;
+            case 2: system("cls");
+                    cout<<"Inserire la grandezza del podio "; cin>>GRANDEZZA_PODIO;
+                    if (GRANDEZZA_PODIO > PARTECIPANTI)
+                    {
+                        cout<<"La grandezza del podio e' maggiore del numero dei partecipanti! E' stata automaticamente portata a "<<PARTECIPANTI;
+                        GRANDEZZA_PODIO = PARTECIPANTI;
+                    }
+                    break;
+            }
+        }while(scelta != 3);
+}
+//-------------------------------------------------------------------------------------------------------------
+
 
 //------------------------------------------STRUCT-SNOWKITERIDER---------------------------------------------
 /*!
@@ -35,7 +90,7 @@ struct SnowkiteRider
 
 /*! \var misurazione
     \brief contiene i punti rilevati durante il percorso dell'atleta*/
-    int misurazione[MINUTI_GARA][2] = {{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1},{-1,-1}};
+    int misurazione[MINUTI_GARA][2];
 
 /*! \var distanza
     \brief contiene la distanza percorsa dall'atleta*/
@@ -52,7 +107,6 @@ class GeneraDistanze
 {
     public:
     /*!
-        \fn getFileName
         \brief restituisce il nome del file di registro
     */
     string getFileName()
@@ -61,7 +115,6 @@ class GeneraDistanze
     }
 
     /*!
-        \fn setFileName
         \param[in] name nome del file
         \brief imposta il nome del file di registro
     */
@@ -71,15 +124,13 @@ class GeneraDistanze
     }
 
     /*!
-        \fn creaRegistroGara
         \brief genera i dati degli atleti e li passa uno ad uno alla funzione writeSnowkiteRider()
     */
     void creaRegistroGara()
     {
         ofstream f(file_name);
         f.close();
-        int n = rand()%PARTECIPANTI;
-        for (int c=0; c<n; c++)
+        for (int c=0; c<PARTECIPANTI; c++)
         {
             int m=rand()%MINUTI_GARA;
             writeSnowkiteRider(generaGiro(generaNome(), m), m);
@@ -87,22 +138,20 @@ class GeneraDistanze
     }
 
     /*!
-        \fn writeSnowkiteRider
-        \param[in] athlete atleta da inserire nel registro
+        \param[in] atleta atleta da inserire nel registro
         \param[in] minuti tempo della prestazione in minuti
         \brief scrive nel file del registro l'ateta passato come parametro
         \note Il file viene scritto nel formato "nome cognome-minuti-x0-y0-x1-y1-x2-y2...-"
     */
-    void writeSnowkiteRider(SnowkiteRider athlete, int minuti)
+    void writeSnowkiteRider(SnowkiteRider atleta, int minuti)
     {
         fstream fout(file_name, ios::app);
-        fout<<athlete.nome<<CARATTERE_SEPARATORE<<athlete.minuti<<CARATTERE_SEPARATORE;
+        fout<<atleta.nome<<CARATTERE_SEPARATORE<<atleta.minuti<<CARATTERE_SEPARATORE;
             for (int t=0; t<minuti; t++)
             {
-                fout<<athlete.misurazione[t][0]<<CARATTERE_SEPARATORE<<athlete.misurazione[t][1]<<CARATTERE_SEPARATORE;
-                if (t == minuti-1)
-                    fout<<'\n';
+                fout<<atleta.misurazione[t][0]<<CARATTERE_SEPARATORE<<atleta.misurazione[t][1]<<CARATTERE_SEPARATORE;
             }
+        fout<<'\n';
         fout.close();
     }
 
@@ -112,7 +161,6 @@ class GeneraDistanze
     string file_name = "RegistroGara.txt";
 
 /*!
-    \fn generaGiro
     \param[in] nome nome dell'atleta
     \param[in] n_minuti tempo effettuato dall'atleta
     \brief genera la prestazione di un atleta
@@ -120,8 +168,8 @@ class GeneraDistanze
 */
     SnowkiteRider generaGiro(string nome, int n_minuti)
     {
-        if(n_minuti > MINUTI_GARA)
-            n_minuti = MINUTI_GARA;
+       if(n_minuti > MINUTI_GARA)
+                n_minuti = MINUTI_GARA;
 
         SnowkiteRider atleta;
         atleta.nome = nome;
@@ -135,7 +183,6 @@ class GeneraDistanze
     }
 
 /*!
-    \fn generaNome
     \brief genera un nome e un cognome
     \return nome e cognome
 */
@@ -167,7 +214,6 @@ class CalcolaPodio
 {
     public:
 /*!
-    \fn getFileName
     \brief restituisce il nome del file di registro
 */
     string getFileName()
@@ -176,7 +222,6 @@ class CalcolaPodio
     }
 
 /*!
-    \fn setFileName
     \param[in] name nome del file
     \brief imposta il nome del file di registro
 */
@@ -186,62 +231,83 @@ class CalcolaPodio
     }
 
 /*!
-    \fn leggiRegistro
     \param[in] vettore vettore che viene riempito con i dati nel file di registro
     \brief legge il file di registro e lo trascrive in un vettore
 */
     void leggiRegistro(SnowkiteRider vettore[])
     {
-        ifstream fin(file_name);
-        string app_interi;
-        int contatore = 0;
-        while(fin)
+        ifstream conta_righe(file_name);
+        int c = 0;
+        string app;
+        while(conta_righe)
         {
-            getline(fin, vettore[contatore].nome, CARATTERE_SEPARATORE);
-            getline(fin, app_interi, CARATTERE_SEPARATORE);
-            vettore[contatore].minuti = stoi(app_interi);
-            for (int m=0; m<vettore[contatore].minuti; m++)
+            getline(conta_righe, app);
+            c++;
+        }
+        conta_righe.close();
+
+        PARTECIPANTI = c-1;
+
+        ifstream fin(file_name);
+        for (int i=0; i<PARTECIPANTI; i++)
+        {
+            getline(fin, vettore[i].nome, CARATTERE_SEPARATORE);
+            getline(fin, app, CARATTERE_SEPARATORE);
+            vettore[i].minuti = stoi(app);
+            int m;
+            for (m=0; m<vettore[i].minuti; m++)
             {
-                getline(fin, app_interi, CARATTERE_SEPARATORE);
-                vettore[contatore].misurazione[0][m] = stoi(app_interi);
-                getline(fin, app_interi, CARATTERE_SEPARATORE);
-                vettore[contatore].misurazione[1][m] = stoi(app_interi);
+                getline(fin, app, CARATTERE_SEPARATORE);
+                vettore[i].misurazione[m][0] = stoi(app);
+                getline(fin, app, CARATTERE_SEPARATORE);
+                vettore[i].misurazione[m][1] = stoi(app);
             }
-            contatore++;
         }
         fin.close();
     }
 
 /*!
-    \fn podio
     \param[in] atleti vettore contenente il registro gara
     \param[in] vettore vettore che verra riempito con il podio
     \brief calcola il podio dei vincitori
 */
-    void podio(SnowkiteRider atleti[], SnowkiteRider vettore[])
+    void podio(SnowkiteRider atleti[])
     {
         calcolaDistanze(atleti);
-        int posizione_vincitori[GRANDEZZA_PODIO] = {0,0,0};
-        for (int c=0; c<GRANDEZZA_PODIO; c++)
+        SnowkiteRider appoggio;
+
+        for (int i=0; i<PARTECIPANTI; i++)
+            for (int j=1; j<PARTECIPANTI;j ++)
+                if (atleti[i].distanza < atleti[j].distanza)
+                {
+                    appoggio = atleti[i];
+                    atleti[i] = atleti[j];
+                    atleti[j] = appoggio;
+                }
+
+        for (int c=0, d=PARTECIPANTI; c<GRANDEZZA_PODIO; c++, d--)
         {
-            for (int i=1; i<PARTECIPANTI; i++)
-                if (atleti[posizione_vincitori[c]].distanza > atleti[i].distanza)
-                    posizione_vincitori[c] = i;
-            vettore[c] = atleti[posizione_vincitori[c]];
-            atleti[posizione_vincitori[c]].distanza = c * -1;
+            if(c==0)
+                cout<<"\a\n\t"<<c+1<<(char) -8<<"    "<<atleti[c].nome<<"    ("<<atleti[c].distanza<<"m)";
+            else
+                cout<<"\a\n\t"<<c+1<<(char) -8<<"    "<<atleti[d].nome<<"    ("<<atleti[d].distanza<<"m)";
+            timeout(1);
         }
     }
 
 /*!
-    \fn calcolaDistanza
     \param[in] atleti vettore contenente il registro gara
     \brief calcola le distanze percorse dagli atleti
 */
     void calcolaDistanze(SnowkiteRider atleti[])
     {
         for (int c=0; c<PARTECIPANTI; c++)
+         {
+            atleti[c].distanza = 0;
             for (int m=0; m<atleti[c].minuti-1; m++)
-                atleti[c].distanza += (int) sqrt(pow(atleti[c].misurazione[m][0]-atleti[c].misurazione[m+1][0],2)+pow(atleti[c].misurazione[m][1]-atleti[c].misurazione[m+1][1],2));
+                atleti[c].distanza += (int) sqrt((int) (((atleti[c].misurazione[m][0]-atleti[c].misurazione[m+1][0])*(atleti[c].misurazione[m][0]-atleti[c].misurazione[m+1][0]))+(atleti[c].misurazione[m][1]-atleti[c].misurazione[m+1][1])*(atleti[c].misurazione[m][1]-atleti[c].misurazione[m+1][1])));
+
+         }
     }
 
  private:
@@ -253,21 +319,8 @@ class CalcolaPodio
 };
 //-------------------------------------------------------------------------------------------------------------
 
-//-------------------------------------------FUNZIONI----------------------------------------------------------
-/*!
-    \fn timeout
-    \param[in] delay tempo da aspettare
-    \brief ferma il programma per il tempo indicato
-*/
-void timeout(double delay)
-{
-    delay *= CLOCKS_PER_SEC;
-    clock_t now = clock();
-    while(clock() - now <delay);
-}
-//-------------------------------------------------------------------------------------------------------------
-
 //---------------------------------------------MAIN------------------------------------------------------------
+//! \brief Generazione e o calcolo della partita e del podio
 int main()
 {
     //Impostazione della randomizzazione
@@ -279,7 +332,6 @@ int main()
         <<"   \\___ \\ | '_ \\  / _ \\\\ \\ /\\ / /| |/ /| || __|/ _ \\ "<<endl
         <<"   ____) || | | || (_) |\\ V  V / |   < | || |_|  __/ "<<endl
         <<"  |_____/ |_| |_| \\___/  \\_/\\_/  |_|\\_\\|_| \\__|\\___| "<<endl;
-
     timeout(3);
     system("cls");
 
@@ -288,6 +340,8 @@ int main()
 
     if (risposta == "si" || risposta == "SI" || risposta == "Si" || risposta == "sI")
     {
+        //Menu' di modifica dei parametri di generazione
+        modificaGenerazione();
         //Generazione del registro di gara
         GeneraDistanze Generatore;
         Generatore.creaRegistroGara();
@@ -299,24 +353,17 @@ int main()
     cout<<"Caricamento podio";
     for (int c=0; c<5; c++)
     {
-        timeout((double) (rand()%4+3)/10);
+        timeout((double) (rand()%4+2)/10);
         cout<<".";
     }
 
     //Dichiarazione dei vettori della lista partecipanti e atleti sul podio
-    SnowkiteRider atleta[PARTECIPANTI], podio[GRANDEZZA_PODIO];
+    SnowkiteRider atleta[PARTECIPANTI];
 
     //Lettura del registro e calcolo del podio
     CalcolaPodio Calcolatore;
     Calcolatore.leggiRegistro(atleta);
-    Calcolatore.podio(atleta, podio);
-
-    cout<<"\n\t\tPODIO\n";
-    for (int c=0; c<GRANDEZZA_PODIO; c++)
-    {
-        cout<<"\a\n\t"<<c+1<<(char) -8<<"\t"<<podio[c].nome<<"    ("<<podio[c].distanza<<"m)";
-        timeout(1);
-    }
+    Calcolatore.podio(atleta);
 
     return 0;
 }
